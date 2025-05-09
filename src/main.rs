@@ -36,7 +36,7 @@ fn main() {
         output_str.push_str("#![allow(warnings)]\n");
 
         output_str.push_str("/// This file is auto-generated! It is generated from schema from https://github.com/xivdev/EXDSchema.\n");
-        output_str.push_str("use physis::{gamedata::GameData, exd::{EXD, ColumnData, ExcelRowKind}, exh::EXH, common::Language};\n");
+        output_str.push_str("use physis::{gamedata::GameData, exd::{EXD, ColumnData, ExcelRowKind}, exh::{EXH, ExcelColumnDefinition}, common::Language};\n");
 
         // sheet struct
         output_str.push_str(&format!("pub struct {} {{\n", schema.name));
@@ -74,8 +74,14 @@ fn main() {
 
         // TODO: only supports a single row for now
         output_str.push_str("let ExcelRowKind::SingleRow(row) = &self.exd.get_row(id).unwrap() else { panic!(\"Expected a single row!\"); };\n");
+
+        // EXDSchema's fields are sorted by column offset. so we have to re-sort it to match
+        output_str.push_str("let column_defs = &self.exh.column_definitions;\n");
+        output_str.push_str("let mut zipped: Vec<_> = row.columns.clone().into_iter().zip(column_defs).collect();\n");
+        output_str.push_str("zipped.sort_by(|(_, a_col), (_, b_col)| a_col.offset.cmp(&b_col.offset));\n");
+        output_str.push_str("let (columns, _): (Vec<ColumnData>, Vec<ExcelColumnDefinition> ) = zipped.into_iter().unzip();\n");
         output_str.push_str(&format!(
-            "{}Row {{ columns: row.columns.clone() }}\n",
+            "{}Row {{ columns }}\n",
             schema.name
         ));
 
@@ -114,12 +120,33 @@ fn main() {
         // rust will HATE us!
         output_str.push_str("#![allow(warnings)]\n");
 
-        for module in modules {
+        for module in &modules {
             output_str.push_str(&format!("#[cfg(feature = \"{}\")]\n", module));
             output_str.push_str(&format!("pub mod {};\n", module));
         }
 
         std::fs::write(&format!("{}/src/lib.rs", out_path), output_str)
             .expect("Failed to write opcodes file!");
+    }
+
+    // generate Cargo.toml
+    {
+        let mut output_str = String::default();
+
+        output_str.push_str("[package]\n");
+        output_str.push_str("name = \"physis-sheets\"\n");
+        output_str.push_str("edition = \"2024\"\n");
+        output_str.push_str("[features]\n");
+        output_str.push_str(&format!("default = [{}]\n", modules.iter().map(|x| format!("\"{}\"", x)).collect::<Vec<String>>().join(",")));
+
+        for module in modules {
+            output_str.push_str(&format!("{} = []\n", module));
+        }
+
+        output_str.push_str("[dependencies]\n");
+        output_str.push_str("physis = { git = \"https://github.com/redstrate/physis\" }\n");
+
+        std::fs::write(&format!("{}/Cargo.toml", out_path), output_str)
+        .expect("Failed to write opcodes file!");
     }
 }
