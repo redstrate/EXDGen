@@ -39,13 +39,13 @@ fn main() {
         output_str.push_str("use physis::{gamedata::GameData, exd::{EXD, ColumnData, ExcelRowKind}, exh::{EXH, ExcelColumnDefinition}, common::Language};\n");
 
         // sheet struct
-        output_str.push_str(&format!("pub struct {} {{\n", schema.name));
+        output_str.push_str(&format!("pub struct {}Sheet {{\n", schema.name));
         output_str.push_str("exd: EXD,\n");
         output_str.push_str("exh: EXH,\n");
         output_str.push_str("}\n");
 
         // sheet struct impl
-        output_str.push_str(&format!("impl {} {{\n", schema.name));
+        output_str.push_str(&format!("impl {}Sheet {{\n", schema.name));
 
         // read function
         output_str.push_str(
