@@ -48,42 +48,42 @@ fn main() {
         output_str.push_str(&format!("impl {} {{\n", schema.name));
 
         // read function
-        output_str
-            .push_str("pub fn read_from(game_data: &mut GameData, language: Language) -> Self {\n");
+        output_str.push_str(
+            "pub fn read_from(game_data: &mut GameData, language: Language) -> Option<Self> {\n",
+        );
 
         output_str.push_str(&format!(
-            "let exh = game_data.read_excel_sheet_header(\"{}\").unwrap();",
+            "let exh = game_data.read_excel_sheet_header(\"{}\")?;",
             schema.name
         ));
         output_str.push_str(&format!(
-            "let exd = game_data.read_excel_sheet(\"{}\", &exh, language, 0).unwrap();",
+            "let exd = game_data.read_excel_sheet(\"{}\", &exh, language, 0)?;",
             schema.name
         ));
 
-        output_str.push_str("Self {\n");
+        output_str.push_str("Some(Self {\n");
         output_str.push_str("exh,\n");
         output_str.push_str("exd,\n");
-        output_str.push_str("}\n");
+        output_str.push_str("})\n");
         output_str.push_str("}\n");
 
         // get row function
         output_str.push_str(&format!(
-            "pub fn get_row(&self, id: u32) -> {}Row {{",
+            "pub fn get_row(&self, id: u32) -> Option<{}Row> {{\n",
             schema.name
         ));
 
         // TODO: only supports a single row for now
-        output_str.push_str("let ExcelRowKind::SingleRow(row) = &self.exd.get_row(id).unwrap() else { panic!(\"Expected a single row!\"); };\n");
+        output_str.push_str("let Some(ExcelRowKind::SingleRow(row)) = &self.exd.get_row(id) else { return None; };\n");
 
         // EXDSchema's fields are sorted by column offset. so we have to re-sort it to match
         output_str.push_str("let column_defs = &self.exh.column_definitions;\n");
         output_str.push_str("let mut zipped: Vec<_> = row.columns.clone().into_iter().zip(column_defs).collect();\n");
-        output_str.push_str("zipped.sort_by(|(_, a_col), (_, b_col)| a_col.offset.cmp(&b_col.offset));\n");
+        output_str.push_str(
+            "zipped.sort_by(|(_, a_col), (_, b_col)| a_col.offset.cmp(&b_col.offset));\n",
+        );
         output_str.push_str("let (columns, _): (Vec<ColumnData>, Vec<ExcelColumnDefinition> ) = zipped.into_iter().unzip();\n");
-        output_str.push_str(&format!(
-            "{}Row {{ columns }}\n",
-            schema.name
-        ));
+        output_str.push_str(&format!("Some({}Row {{ columns }})\n", schema.name));
 
         output_str.push_str("}\n");
         output_str.push_str("}\n");
@@ -137,7 +137,14 @@ fn main() {
         output_str.push_str("name = \"physis-sheets\"\n");
         output_str.push_str("edition = \"2024\"\n");
         output_str.push_str("[features]\n");
-        output_str.push_str(&format!("default = [{}]\n", modules.iter().map(|x| format!("\"{}\"", x)).collect::<Vec<String>>().join(",")));
+        output_str.push_str(&format!(
+            "default = [{}]\n",
+            modules
+                .iter()
+                .map(|x| format!("\"{}\"", x))
+                .collect::<Vec<String>>()
+                .join(",")
+        ));
 
         for module in modules {
             output_str.push_str(&format!("{} = []\n", module));
@@ -147,6 +154,6 @@ fn main() {
         output_str.push_str("physis = { git = \"https://github.com/redstrate/physis\" }\n");
 
         std::fs::write(&format!("{}/Cargo.toml", out_path), output_str)
-        .expect("Failed to write opcodes file!");
+            .expect("Failed to write opcodes file!");
     }
 }
