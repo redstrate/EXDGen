@@ -1,6 +1,6 @@
 # EXDGen
 
-Auto-generate [EXDSchema](https://github.com/xivdev/EXDSchema)-based libraries, currently targetting Rust. This builds upon the existing Excel parsing in [Physis](https://github.com/redstrate/Physis) but with a higher-level, sheet-based structure for projects only care about the _data_.
+Auto-generate [EXDSchema](https://github.com/xivdev/EXDSchema)-based libraries, currently targeting Rust. This builds upon the existing Excel parsing in [Physis](https://github.com/redstrate/Physis) but with a higher-level, sheet-based structure for projects only care about the _data_.
 
 You do not use this tool directly in your project, you can see it's output in [Physis Sheets](https://github.com/redstrate/PhysisSheets).
 
@@ -8,7 +8,7 @@ You do not use this tool directly in your project, you can see it's output in [P
 
 # Usage
 
-Run using `cargo run`, passing the path to the EXDSchema direcotry, your output directory and the applicable version:
+Run using `cargo run`, passing the path to the EXDSchema directory, your output directory and the applicable version:
 
 ```shell
 cargo run -- "~/Downloads/EXDSchema" "~/sources/PhysisSheets" "2025.04.16.0000.0000"
