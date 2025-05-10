@@ -14,6 +14,12 @@ Run using `cargo run`, passing the path to the EXDSchema direcotry, your output 
 cargo run -- "~/Downloads/EXDSchema" "~/sources/PhysisSheets" "2025.04.16.0000.0000"
 ```
 
+For managing the sheets repository specifically, an even easier script is provided with `scripts/gen_repo.sh`:
+
+```shell
+./scripts/gen_repo.sh 2025.04.16.0000.0000 ../PhysisSheets
+```
+
 ## License
 
 ![GPLv3](https://www.gnu.org/graphics/gplv3-127x51.png)
