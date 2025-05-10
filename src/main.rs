@@ -13,9 +13,14 @@ struct Schema {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    if args.len() < 4 {
+        println!("usage: [schema path] [output path] [game version]");
+        return;
+    }
 
     let schema_path = &args[1];
     let out_path = &args[2];
+    let game_version = &args[3];
 
     // generate rust structs
     let paths = std::fs::read_dir(&schema_path).unwrap();
@@ -154,6 +159,17 @@ fn main() {
         output_str.push_str("physis = { git = \"https://github.com/redstrate/physis\" }\n");
 
         std::fs::write(&format!("{}/Cargo.toml", out_path), output_str)
+            .expect("Failed to write opcodes file!");
+    }
+
+    // generate README.md
+    {
+        let output_str = include_str!("../resources/README.tmpl");
+
+        // replace with game ver
+        let output_str = output_str.replace("%game_version%", game_version).to_string();
+
+        std::fs::write(&format!("{}/README.md", out_path), output_str)
             .expect("Failed to write opcodes file!");
     }
 }
