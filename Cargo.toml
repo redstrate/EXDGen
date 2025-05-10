@@ -1,5 +1,5 @@
 [package]
-name = "NEXGen"
+name = "EXDGen"
 edition = "2024"
 
 [dependencies]
