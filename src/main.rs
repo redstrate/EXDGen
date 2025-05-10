@@ -139,7 +139,7 @@ fn main() {
         let mut output_str = String::default();
 
         output_str.push_str("[package]\n");
-        output_str.push_str("name = \"physis-sheets\"\n");
+        output_str.push_str("name = \"icarus\"\n");
         output_str.push_str("edition = \"2024\"\n");
         output_str.push_str("[features]\n");
         output_str.push_str(&format!(
