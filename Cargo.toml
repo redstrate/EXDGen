@@ -3,6 +3,5 @@ name = "NEXGen"
 edition = "2024"
 
 [dependencies]
-physis = { git = "https://github.com/redstrate/physis" }
 serde = { version = "1.0", features = ["derive"], default-features = false }
 serde_yaml_ng = { version = "0.10", default-features = false }
