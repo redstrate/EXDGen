@@ -1,7 +1,26 @@
 use serde::Deserialize;
 
+#[derive(Default, Deserialize)]
+enum FieldType {
+    #[default]
+    Single,
+    #[serde(rename(deserialize = "array"))]
+    Array,
+    #[serde(rename(deserialize = "link"))]
+    Link,
+    #[serde(rename(deserialize = "icon"))]
+    Icon,
+    #[serde(rename(deserialize = "color"))]
+    Color,
+}
+
 #[derive(Deserialize)]
 struct SchemaField {
+    #[serde(default)]
+    #[serde(rename(deserialize = "type"))]
+    field_type: FieldType,
+    #[serde(default)]
+    count: u32,
     name: String,
 }
 
@@ -104,11 +123,31 @@ fn main() {
         let mut i = 0;
         for field in schema.fields {
             // function
-            output_str.push_str(&format!("pub fn {}(&self) -> &ColumnData {{\n", field.name));
-            output_str.push_str(&format!("&self.columns[{}]\n", i));
-            output_str.push_str("}\n");
+            match field.field_type {
+                FieldType::Array => {
+                    output_str.push_str(&format!(
+                        "pub fn {}(&self) -> [&ColumnData; {}] {{\n",
+                        field.name, field.count
+                    ));
+                    output_str.push_str("[");
+                    for j in 0..field.count {
+                        output_str.push_str(&format!("&self.columns[{}],", i + j));
+                    }
+                    output_str.push_str("]\n");
+                    output_str.push_str("}\n");
 
-            i += 1;
+                    i += field.count;
+                }
+                _ => {
+                    // fallback
+                    output_str
+                        .push_str(&format!("pub fn {}(&self) -> &ColumnData {{\n", field.name));
+                    output_str.push_str(&format!("&self.columns[{}]\n", i));
+                    output_str.push_str("}\n");
+
+                    i += 1;
+                }
+            }
         }
 
         output_str.push_str("}\n");
@@ -167,7 +206,9 @@ fn main() {
         let output_str = include_str!("../resources/README.tmpl");
 
         // replace with game ver
-        let output_str = output_str.replace("%game_version%", game_version).to_string();
+        let output_str = output_str
+            .replace("%game_version%", game_version)
+            .to_string();
 
         std::fs::write(&format!("{}/README.md", out_path), output_str)
             .expect("Failed to write opcodes file!");
